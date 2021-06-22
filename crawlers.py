@@ -83,7 +83,10 @@ class NatePannRankingCrawler(object):
             for dt in ranking_list:
                 link = dt.find('a')
                 real_link = 'https://pann.nate.com' + link.get('href')
-                titles.append(link.title)
+                try:
+                    titles.append(link.text)
+                except:
+                    titles.append("")
                 links.append(real_link)
                 
         return {'title': titles, 'link': links}

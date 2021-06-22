@@ -2,6 +2,7 @@
 
 ### 네이트판 랭킹 웹 크롤러
 세부 설명 : https://wdprogrammer.tistory.com/39?category=817328
+
 crawlers.py
 
 ~~~python
@@ -26,10 +27,8 @@ crawler.get_contents(days=150, current_time=True, to_json=True)
 from preprocessing import KoreanPreprocessor
 
 processor = KoreanPreprocessor()
-    print(processor.remove_noises("[문자열]"))
+print(processor.remove_noises("[문자열]"))
 ~~~
-
-
 
 입력
 
@@ -44,3 +43,22 @@ addLoadEvent(function(){j$('#contentVideo0').html('<iframe name=\"video\" class=
 ~~~
 
 
+
+## Utils
+
+JSON 파일로 저장된 한글 문서 집합으로부터 TF-IDF 계산
+
+~~~python
+processor = KoreanPreprocessor()
+dt = processor.get_segmented_docs(js_filename='nate_pann_ranking20210123_20210622_rm_noisy.json')
+get_tfidf(dt['docs'], dt['titles'], n_limit=300).to_csv('tf_idf.csv', index=False, encoding="utf-8-sig")
+~~~
+
+결과 예시
+
+| word     | freq | 유명 커플 유튜버, 극단적 선택 시도..성관계 영상 … | 고백썰 풀어주라! | 딩크 부부의 고민. 제 잘못인가요? | 에이프릴 또 거짓말함 | 빅히트 사내연애 아님 하이브임 방셉 | 근데 트와이스는 재계약 절대안할거같음... |
+| -------- | ---- | ------------------------------------------------- | ---------------- | -------------------------------- | -------------------- | ---------------------------------- | ---------------------------------------- |
+| 있       | 6    | 4.925883                                          | 3.283922         | 7.388825                         | 0                    | 1.641961                           | 0.820981                                 |
+| 영상     | 1    | 39.86775                                          | 0                | 0                                | 0                    | 0                                  | 0                                        |
+| 시어머니 | 11   | 0                                                 | 0                | 3.506558                         | 0                    | 0                                  | 0                                        |
+| 기       | 2    | 2.746098                                          | 2.746098         | 6.865246                         | 0                    | 1.373049                           | 1.373049                                 |
