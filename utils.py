@@ -53,7 +53,11 @@ def get_tfidf(docs, titles=None, n_limit=None):
     tfs = []
     for d in docs:
         tf = get_term_frequency(d)
-        vocab.update(tf)
+        for w, freq in tf.items():
+            if vocab.get(w) is None:
+                vocab[w] = freq
+            else:
+                vocab[w] += freq
         tfs += [tf]
     df = get_doc_freq_from_tfs(tfs, vocab)
 
@@ -82,4 +86,4 @@ def get_tfidf(docs, titles=None, n_limit=None):
 if __name__=='__main__':
     processor = KoreanPreprocessor()
     dt = processor.get_segmented_docs(js_filename='nate_pann_ranking20210123_20210622_rm_noisy.json')
-    get_tfidf(dt['docs'], dt['titles'], 300).to_csv('tf_idf.csv', index=False, encoding="utf-8-sig")
+    get_tfidf(dt['docs'], dt['titles'], 50).to_csv('tf_idf.csv', index=False, encoding="utf-8-sig")
