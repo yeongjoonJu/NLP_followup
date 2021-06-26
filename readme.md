@@ -46,12 +46,29 @@ addLoadEvent(function(){j$('#contentVideo0').html('<iframe name=\"video\" class=
 
 ## Utils
 
+Nate pann 랭킹 문서들로부터 단어 사전 만들기
+
+~~~python
+# Make vocabulary based Nate pann ranking documents
+processor = KoreanPreprocessor()
+data = processor.read_docs_from_js('data/nate_pann_ranking20210123_20210622.json')
+docs = []
+for sample in data:
+    docs.append(sample['content'])
+
+    vocab = get_vocab(docs, vocab_size=5000, rm_stopwords=True)
+    with open('vocab.js', 'w') as js:
+        json.dump(vocab, js, ensure_ascii=False)
+~~~
+
+
+
 JSON 파일로 저장된 한글 문서 집합으로부터 TF-IDF 계산
 
 ~~~python
 processor = KoreanPreprocessor()
 dt = processor.get_segmented_docs(js_filename='nate_pann_ranking20210123_20210622_rm_noisy.json')
-get_tfidf(dt['docs'], dt['titles'], n_limit=300).to_csv('tf_idf.csv', index=False, encoding="utf-8-sig")
+get_tfidf(dt['docs'], dt['titles'], n_limit=50).to_csv('tf_idf.csv', index=False, encoding="utf-8-sig")
 ~~~
 
 결과 예시
