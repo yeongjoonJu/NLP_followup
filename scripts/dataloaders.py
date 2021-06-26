@@ -78,8 +78,6 @@ class TextClsDataLoader(object):
         # It is making mapping table between words and indice.
         self.label.build_vocab(train)
         self.text.build_vocab(train, max_size=max_vocab, min_freq=min_freq)
-    
-
 
 
 class SingleCorpusDataLoader(object):

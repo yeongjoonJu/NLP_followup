@@ -25,29 +25,31 @@ class KoreanPreprocessor(object):
     def remove_noises(self, doc, strict=False, stopword=False):
         # print(doc)
         # Remove video tag
-        doc = re.sub(r'(addLoadEvent)[^\n]+;', "", doc)
+        doc = re.sub(r'(addLoadEvent)[^\n]+;', ' ', doc)
 
         # Remove line alignments
-        doc = re.sub(r'[\n\s]+', " ", doc)
+        doc = re.sub(r'[\n\s]+', ' ', doc)
 
         # Remove links
-        doc = re.sub(r'((http)([s:/]{3,4})?)?[a-z0-9]+([\.][a-z0-9]+)+[\S]+', "", doc)
+        doc = re.sub(r'((http)([s:/]{3,4})?)?[a-z0-9]+([\.][a-z0-9]+)+[\S]+', ' ', doc)
 
-        # Remove repetition
-        if strict:
-            doc = re.sub(r'[ㄱ-ㅎㅏ-ㅣ\s\.,]+', ' ', doc)
-        else:
-            doc = re.sub(r'([ㄱ-ㅎㅏ-ㅣ\.\s])\1{2,}', r'\1\1', doc)
-        
-        doc = re.sub(r'(\s)\.(\s)', '.', doc)
-        doc = re.sub(r'([^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9\s\.]){2,}', r'\1', doc)
-        doc = re.sub(r'[\.]{3,}', '..', doc)
-        
         # Remove special char
-        doc = re.sub(r'[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9\s,/\?\!\.]', '', doc)
+        doc = re.sub(r'[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9\s\?\!\.]', ' ', doc)
         
+        if strict:
+            # Remove chosung, punct, and digits
+            doc = re.sub(r'[ㄱ-ㅎㅏ-ㅣ\s\.]+', ' ', doc)
+            doc = re.sub(r'[0-9]+', '_digit', doc)
+        else:
+            # Reduce repetition
+            doc = re.sub(r'([ㄱ-ㅎㅏ-ㅣ\.\s])\1{2,}', r'\1\1', doc)
 
-        return doc
+        # Reduce repetition ? ! .
+        doc = re.sub(r'([?!]){2,}', r'\1', doc)
+        doc = re.sub(r'[\.]{3,}', '..', doc)
+        doc = re.sub(r'[\s]{2,}', ' ', doc)
+
+        return doc.strip()
 
     def tokenize(self, doc):
         doc = self.mecab.morphs(doc)
@@ -113,6 +115,7 @@ def get_vocab(docs, processor=None, rm_stopwords=False, vocab_size=None):
         vocab.append(doc)
     
     vocab = FreqDist(np.hstack(vocab))
+    print('Found words', len(vocab))
     if vocab_size is not None:
         vocab = vocab.most_common(vocab_size)
     
@@ -139,5 +142,8 @@ if __name__=='__main__':
         docs.append(sample['content'])
 
     vocab = get_vocab(docs, vocab_size=5000, rm_stopwords=True)
-    with open('vocab.js', 'w') as js:
+    with open('data/vocab.js', 'w') as js:
         json.dump(vocab, js, ensure_ascii=False)
+
+    # processor = KoreanPreprocessor()
+    # processor.remove_empty_docs_and_noises(js_filename='data/nate_pann_ranking20210123_20210622.json')
