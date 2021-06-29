@@ -1,3 +1,25 @@
+## Word2Vec
+
+Skip Gram의 성능을 향상시키기 위한 negative sampling, subsampling 등을 제안한 [Distributed Representations of Words and Phrases and their Compositionality](https://proceedings.neurips.cc/paper/2013/file/9aa42b31882ec039965f3c4923ce901b-Paper.pdf)를 구현
+
+**Training skip gram model**
+
+word2vec.py
+
+~~~python
+train_skip_gram()
+~~~
+
+*Subsampling of Frequent words 구현에 대한 언급*
+
+1. subsampling의 확률 값을 구한 뒤, 100 epochs을 한다고 산정하였을 때 $확률 \times 100$ 만큼 각 sample을 증대시킴
+
+학습속도 향상을 위해 위 방법을 시도했으나 메모리를 너무 많이 잡아먹어 좋지 않은 방법이었음.
+
+2. subsampling의 확률 값을 구한 뒤, 각 sample마다 해당 확률을 부여하고 WeightedSampler를 사용
+
+메모리 문제는 해결되나 학습 속도가 많이 느려짐
+
 ## Crawlers
 
 ### 네이트판 랭킹 웹 크롤러

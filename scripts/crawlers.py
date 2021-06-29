@@ -115,5 +115,5 @@ class NatePannRankingCrawler(object):
 
 if __name__ == '__main__':
     crawler = NatePannRankingCrawler()
-    print(crawler.get_contents(days=150, current_time=True, to_json=True))
+    print(crawler.get_contents(days=300, current_time=True, to_json=True))
 

@@ -2,6 +2,9 @@ from os import stat
 from re import S
 from typing import Sequence
 from torchtext import data, datasets
+from torch.utils.data import Dataset
+import torch
+import numpy as np
 
 class LanguageModelDataset(data.Dataset):
     def __init__(self, path, fields, max_length=None, **kwargs):
@@ -136,3 +139,5 @@ class ParallelCorpusDataLoader(object):
     def load_vocab(self, src_vocab, tgt_vocab):
         self.src.vocab = src_vocab
         self.tgt.vocab = tgt_vocab
+
+
