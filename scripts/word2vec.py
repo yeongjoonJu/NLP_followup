@@ -5,6 +5,7 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 from utils import *
 import numpy as np
+import torch.nn.functional as F
 import math, os, pickle, random, gc
 
 def get_unigram_prob(vocab_freq):
@@ -98,7 +99,7 @@ def build_skip_gram_dataset(docs_filename, vocab_filename, window_size=2, proces
                         continue
                     if vocab_idx.get(sent[p+w]) is not None:
                         idx_pairs.append([vocab_idx[sent[p]], vocab_idx[sent[p+w]]])
-                        sampling_probs.append(subsampling_prob[sent[p]])
+                        sampling_probs.append(1.-subsampling_prob[sent[p]])
                         ctx_indices[vocab_idx[sent[p]]].append(vocab_idx[sent[p+w]])
     print()
 
@@ -111,7 +112,10 @@ class SkipGramDataset(Dataset):
     """
     Implementation of https://proceedings.neurips.cc/paper/2013/file/9aa42b31882ec039965f3c4923ce901b-Paper.pdf
     """
-    def __init__(self, docs_filename, vocab_filename, window_size=2, processor=None, neg_samples=5):
+    def __init__(self, docs_filename, vocab_filename, window_size=5, processor=None, neg_samples=5):
+        """
+        neg_samples : small dataset 5~20, large dataset 2~5
+        """
         if processor is None:
             processor = KoreanPreprocessor()
 
@@ -199,19 +203,40 @@ class SkipGram(nn.Module):
         loss = pos_val + neg_val
 
         return -loss.mean()
+    
+    def predict(self, x):
+        return self.w_i(x)
+
+    def similarity(self, x, y):
+        v = self.w_i(x).squeeze(1)
+        u = self.w_i(y).squeeze(1)
+        # u = self.w_o(y).squeeze(1)
+
+        return F.sigmoid(torch.sum(v*u, dim=1))
 
 
-def train_skip_gram(total_step=300000, batch_size=128):
+def train_skip_gram(total_step=600000, batch_size=128):
     # device = torch.cuda.device('cuda:0')
 
-    dataset = SkipGramDataset('data/nate_pann_ranking20200901_20210628_rm_noisy.json', 'data/vocab_freq.js')
+    dataset = SkipGramDataset('data/nate_pann_ranking20200901_20210628_rm_noisy.json', 'data/vocab_freq.js', neg_samples=20)
+    vocab_idx = dataset.vocab_idx
     sampler = torch.utils.data.WeightedRandomSampler(dataset.sampling_probs, batch_size, replacement=False)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=2, sampler=sampler)
-    model = SkipGram(dataset.vocab_size, 512).cuda()
+    model = SkipGram(dataset.vocab_size, 300).cuda()
 
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
     optimizer = torch.optim.AdamW(model.parameters(), 0.001, betas=(0.5, 0.999))
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=total_step)
+
+    log_step = 500
+    examples = [['아버지', '어머니'], ['조선족', '중국'], ['초등학생', '미적분'], ['냉장고', '무서움']]
+    x_idx = []
+    y_idx = []
+    for ex in examples:
+        x_idx.append(vocab_idx[ex[0]])
+        y_idx.append(vocab_idx[ex[1]])
+    x_idx = np.array(x_idx)
+    y_idx = np.array(y_idx)
 
     model.train()
     should_keep_training = True
@@ -232,11 +257,47 @@ def train_skip_gram(total_step=300000, batch_size=128):
             it += 1
 
             print('\rIter %d loss: %.4f' % (it, loss.detach().item()), end='')
-        
+
+            if it % log_step == 0:
+                with torch.no_grad():
+                    x = torch.LongTensor(x_idx).cuda()
+                    y = torch.LongTensor(y_idx).cuda()                        
+                    sim = model.similarity(x, y).cpu()
+                    print()
+                    for i in range(len(examples)):
+                        print(examples[i], sim[i].item())
 
             if it % 20000 == 0:
                 torch.save(model.state_dict(), 'checkpoints/skip_gram_it%d_loss%.4f.pth' % (it, loss.detach().item()))
 
+            if it >= total_step:
+                should_keep_training = False
+
+def inference(x, y, model, vocab_idx):
+    if vocab_idx.get(x) is None or vocab_idx.get(y) is None:
+        raise ValueError
+    
+    x_idx = vocab_idx[x]
+    y_idx = vocab_idx[y]
+    x_idx = torch.LongTensor(np.array([x_idx])).unsqueeze(0).cuda()
+    y_idx = torch.LongTensor(np.array([y_idx])).unsqueeze(0).cuda()
+
+    sim = model.similarity(x_idx, y_idx).squeeze(0)
+    
+    return sim.item()
         
 if __name__=='__main__':
     train_skip_gram()
+    # vocab_idx = pickle.load(open('data/vocab_idx.dict', 'rb'))
+    # model = SkipGram(len(vocab_idx.keys()), 512).cuda()
+    # model.load_state_dict(torch.load('checkpoints/skip_gram_it320000_loss0.3300.pth'))
+
+    # with open('data/vocab_idx.json', 'w') as js:
+    #     json.dump(vocab_idx, js, ensure_ascii=False)
+
+    # print(inference('중국', '조선족', model, vocab_idx))
+    # print(inference('어머니', '아버지', model, vocab_idx))
+    # print(inference('고급', '비싼', model, vocab_idx))
+    # print(inference('초등학생', '미적분', model, vocab_idx))
+    # print(inference('집안', '횡설수설', model, vocab_idx))
+    

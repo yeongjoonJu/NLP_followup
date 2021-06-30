@@ -2,6 +2,8 @@
 
 Skip Gram의 성능을 향상시키기 위한 negative sampling, subsampling 등을 제안한 [Distributed Representations of Words and Phrases and their Compositionality](https://proceedings.neurips.cc/paper/2013/file/9aa42b31882ec039965f3c4923ce901b-Paper.pdf)를 구현
 
+Skip Gram with negative sampling에 대한 잘 설명된 포스팅 : https://jalammar.github.io/illustrated-word2vec/
+
 **Training skip gram model**
 
 word2vec.py
@@ -12,13 +14,15 @@ train_skip_gram()
 
 *Subsampling of Frequent words 구현에 대한 언급*
 
-1. subsampling의 확률 값을 구한 뒤, 100 epochs을 한다고 산정하였을 때 $확률 \times 100$ 만큼 각 sample을 증대시킴
+1. subsampling의 확률 값을 구한 뒤, 100 epochs을 한다고 산정하였을 때 확률 X 100 만큼 각 sample을 증대시킴
 
 학습속도 향상을 위해 위 방법을 시도했으나 메모리를 너무 많이 잡아먹어 좋지 않은 방법이었음.
 
 2. subsampling의 확률 값을 구한 뒤, 각 sample마다 해당 확률을 부여하고 WeightedSampler를 사용
 
 메모리 문제는 해결되나 학습 속도가 많이 느려짐
+
+
 
 ## Crawlers
 
@@ -66,7 +70,16 @@ addLoadEvent(function(){j$('#contentVideo0').html('<iframe name=\"video\" class=
 
 
 
-## Utils
+## Utils, analysis
+
+크롤링된 문서들로부터 빈 문서와 노이즈를 제거
+
+~~~python
+processor = KoreanPreprocessor()
+processor.remove_empty_docs_and_noises(js_filename='파일명')
+~~~
+
+
 
 Nate pann 랭킹 문서들로부터 단어 사전 만들기
 
