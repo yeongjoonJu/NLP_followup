@@ -1,6 +1,6 @@
 ## Word2Vec
 
-Skip Gram의 성능을 향상시키기 위한 negative sampling, subsampling 등을 제안한 [Distributed Representations of Words and Phrases and their Compositionality](https://proceedings.neurips.cc/paper/2013/file/9aa42b31882ec039965f3c4923ce901b-Paper.pdf)를 구현
+Skip Gram의 성능을 향상시키기 위한 negative sampling, subsampling 등을 제안한 [Distributed Representations of Words and Phrases and their Compositionality](https://proceedings.neurips.cc/paper/2013/file/9aa42b31882ec039965f3c4923ce901b-Paper.pdf) (SkipGram with negative sampling)를 구현
 
 Skip Gram with negative sampling에 대한 잘 설명된 포스팅 : https://jalammar.github.io/illustrated-word2vec/
 
@@ -21,6 +21,17 @@ train_skip_gram()
 2. subsampling의 확률 값을 구한 뒤, 각 sample마다 해당 확률을 부여하고 WeightedSampler를 사용
 
 메모리 문제는 해결되나 학습 속도가 많이 느려짐
+
+**네이트 판 랭킹 문서들로 학습했을 때, 두 단어에 대한 유사도 계산 결과**
+
+~~~
+'중국', '조선족' 0.8996447324752808
+'어머니', '아버지' 0.9065659642219543
+'고급', '비싼' 0.9414024949073792
+'초등학생', '미적분' 0.6867436170578003
+'집안', '횡설수설' 0.5896382927894592
+'냉장고', '무서움' 0.0923378095030784
+~~~
 
 
 

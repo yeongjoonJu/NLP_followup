@@ -215,7 +215,7 @@ class SkipGram(nn.Module):
         return F.sigmoid(torch.sum(v*u, dim=1))
 
 
-def train_skip_gram(total_step=600000, batch_size=128):
+def train_skip_gram(total_step=240000, batch_size=128):
     # device = torch.cuda.device('cuda:0')
 
     dataset = SkipGramDataset('data/nate_pann_ranking20200901_20210628_rm_noisy.json', 'data/vocab_freq.js', neg_samples=20)
@@ -287,17 +287,18 @@ def inference(x, y, model, vocab_idx):
     return sim.item()
         
 if __name__=='__main__':
-    train_skip_gram()
-    # vocab_idx = pickle.load(open('data/vocab_idx.dict', 'rb'))
-    # model = SkipGram(len(vocab_idx.keys()), 512).cuda()
-    # model.load_state_dict(torch.load('checkpoints/skip_gram_it320000_loss0.3300.pth'))
+    # train_skip_gram()
+    vocab_idx = pickle.load(open('data/vocab_idx.dict', 'rb'))
+    model = SkipGram(len(vocab_idx.keys()), 300).cuda()
+    model.load_state_dict(torch.load('checkpoints/skip_gram_it240000_loss0.3940.pth'))
 
-    # with open('data/vocab_idx.json', 'w') as js:
-    #     json.dump(vocab_idx, js, ensure_ascii=False)
+    with open('data/vocab_idx.json', 'w') as js:
+        json.dump(vocab_idx, js, ensure_ascii=False)
 
-    # print(inference('중국', '조선족', model, vocab_idx))
-    # print(inference('어머니', '아버지', model, vocab_idx))
-    # print(inference('고급', '비싼', model, vocab_idx))
-    # print(inference('초등학생', '미적분', model, vocab_idx))
-    # print(inference('집안', '횡설수설', model, vocab_idx))
+    print(inference('중국', '조선족', model, vocab_idx))
+    print(inference('어머니', '아버지', model, vocab_idx))
+    print(inference('고급', '비싼', model, vocab_idx))
+    print(inference('초등학생', '미적분', model, vocab_idx))
+    print(inference('집안', '횡설수설', model, vocab_idx))
+    print(inference('냉장고', '무서움', model, vocab_idx))
     
