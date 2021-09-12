@@ -34,7 +34,7 @@ class NatePannRankingCrawler(object):
                     titles.extend(info['title'])
                     links.extend(info['link'])
 
-                d = d - timedelta(day+1)
+                d = d - timedelta(days=1)
                 print('\rData %d are collected...' % len(titles), end="")
         
         print()
